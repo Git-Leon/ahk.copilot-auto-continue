@@ -9,7 +9,19 @@ counter := 0
 
 logDir := A_ScriptDir "\..\..\target"
 DirCreate(logDir)
-logFile := logDir "\copilot-auto.log"
+; Create a unique, enumerated log filename: copilot-auto-1.log, copilot-auto-2.log, ...
+logFile := ""
+Loop 1000 {
+    candidate := logDir . "\copilot-auto-" . A_Index . ".log"
+    if !FileExist(candidate) {
+        logFile := candidate
+        break
+    }
+}
+if (!logFile) {
+    ; Fallback if something unexpected happens
+    logFile := logDir . "\copilot-auto.log"
+}
 
 Log(msg)
 {
@@ -18,28 +30,36 @@ Log(msg)
     FileAppend("[" timestamp "] " msg "`n", logFile, "UTF-8")
 }
 
+PasteContinue()
+{
+    oldClipboard := ClipboardAll()
+    A_Clipboard := "Continue"
+    ClipWait(1)
+
+    Log("CONTINUE: Clipboard set to Continue")
+
+    LogSendEventSleep("CONTINUE: Ctrl+A", "^{a}", 150)
+    LogSendEventSleep("CONTINUE: Ctrl+V", "^{v}", 150)
+
+    A_Clipboard := oldClipboard
+    Log("CONTINUE: Clipboard restored")
+}
+
 AllowCopilotCommand()
 {
-    Log("ALLOW: Attempt 1 - SendEvent ^{Enter}")
-    SendEvent("^{Enter}")
-    Sleep(300)
-
-    Log("ALLOW: Attempt 2 - SendInput ^{Enter}")
-    SendInput("^{Enter}")
-    Sleep(300)
-
-    Log("ALLOW: Attempt 3 - SendPlay ^{Enter}")
-    SendPlay("^{Enter}")
-    Sleep(300)
+    PasteContinue()
+    ; Use wrapper helpers that log, send and sleep
+    LogSendEventSleep("ALLOW: Attempt 1 - SendEvent ^{Enter}", "^{Enter}", 300)
+    LogSendInputSleep("ALLOW: Attempt 2 - SendInput ^{Enter}", "^{Enter}", 300)
+    LogSendPlaySleep("ALLOW: Attempt 3 - SendPlay ^{Enter}", "^{Enter}", 300)
 
     Log("ALLOW: Attempt 4 - Explicit Ctrl down/up")
-    SendEvent("{Ctrl down}")
-    Sleep(100)
-    SendEvent("{Enter}")
-    Sleep(100)
-    SendEvent("{Ctrl up}")
-    Sleep(300)
+    LogSendEventSleep("ALLOW: Ctrl down", "{Ctrl down}", 100)
+    LogSendEventSleep("ALLOW: Enter (with Ctrl down)", "{Enter}", 100)
+    LogSendEventSleep("ALLOW: Ctrl up", "{Ctrl up}", 300)
 }
+
+#Include utils.ahk
 
 ^!g::
 {
@@ -70,13 +90,13 @@ MainLoop()
     activeWindow := WinGetTitle("A")
     Log("TICK - counter=" counter " - activeWindow=" activeWindow)
 
-    ; Every 300 seconds → Continue flow
-    if (counter >= 300) {
+    ; Every 90 seconds → Continue flow
+    if (counter >= 90) {
         counter := 0
 
         Log("CONTINUE FLOW START")
-        SendText("Continue")
-        Log("Typed: Continue")
+        PasteContinue()
+        Log("Pasted: Continue")
 
         Sleep(10000)
 
@@ -101,7 +121,7 @@ MainLoop()
 ^!y::
 {
     Log("MANUAL TEST - Continue flow start")
-    SendText("Continue")
+    PasteContinue()
     Sleep(10000)
     AllowCopilotCommand()
     Log("MANUAL TEST - Continue flow complete")

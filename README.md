@@ -11,3 +11,5 @@ AutoHotkey script that keeps GitHub Copilot Agent mode running by:
 
 ## Motivation
 Prevents Copilot from pausing during long-running agent tasks.
+
+Ensure copilot-auto-continue.ahk is ran as administrator
