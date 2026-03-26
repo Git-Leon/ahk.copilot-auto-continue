@@ -516,7 +516,8 @@ vendor/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -1534,3 +1535,5 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/jekyll,visualstudio,visualstudiocode,intellij,rider,notepadpp,sublimetext,windows,macos,linux,pycharm,jetbrains+all,netbeans,eclipse,unity,java,maven,gradle,node,angular,flask,reactnative,ionic3
+
+target/
